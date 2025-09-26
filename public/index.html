@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Web 集成服务 - ATGUIGU</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 5px solid #25D366;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .status-value {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        
+        .status-ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-not-ready {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .qr-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .qr-code {
+            max-width: 300px;
+            margin: 20px auto;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            background: white;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .form-group {
+            margin: 20px 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #25D366;
+        }
+        
+        .users-section {
+            margin: 30px 0;
+        }
+        
+        .user-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #25D366;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        
+        .user-phone {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .api-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        
+        .api-endpoint {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+        }
+        
+        .api-method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        
+        .method-get {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .method-post {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .api-url {
+            font-family: 'Courier New', monospace;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 WhatsApp Web 集成服务</h1>
+            <p>ATGUIGU 项目 - 专业的 WhatsApp Web 自动化解决方案</p>
+        </div>
+        
+        <div class="content">
+            <!-- 状态卡片 -->
+            <div class="status-card">
+                <h3>📊 服务状态</h3>
+                <div class="status-item">
+                    <span class="status-label">连接状态</span>
+                    <span class="status-value" id="connectionStatus">检查中...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">客户端状态</span>
+                    <span class="status-value" id="clientStatus">检查中...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">二维码状态</span>
+                    <span class="status-value" id="qrStatus">检查中...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">最后更新</span>
+                    <span class="status-value" id="lastUpdate">-</span>
+                </div>
+            </div>
+            
+            <!-- 二维码区域 -->
+            <div class="qr-section">
+                <h3>📱 登录二维码</h3>
+                <div id="qrContainer">
+                    <div class="loading">正在加载二维码...</div>
+                </div>
+                <button class="btn" onclick="refreshQR()">🔄 刷新二维码</button>
+                <button class="btn" onclick="reinitialize()">🔄 重新初始化</button>
+            </div>
+            
+            <!-- 发送消息区域 -->
+            <div class="api-section">
+                <h3>📤 发送消息</h3>
+                <div class="form-group">
+                    <label for="phoneNumber">手机号</label>
+                    <input type="text" id="phoneNumber" placeholder="请输入手机号，如：1234567890">
+                </div>
+                <div class="form-group">
+                    <label for="message">消息内容</label>
+                    <textarea id="message" rows="3" placeholder="请输入消息内容"></textarea>
+                </div>
+                <button class="btn" onclick="sendMessage()">📤 发送消息</button>
+                <button class="btn" onclick="loadUsers()">👥 加载用户列表</button>
+            </div>
+            
+            <!-- 用户列表区域 -->
+            <div class="users-section">
+                <h3>👥 用户列表</h3>
+                <div id="usersContainer">
+                    <div class="loading">点击"加载用户列表"按钮获取用户信息</div>
+                </div>
+            </div>
+            
+            <!-- API 文档区域 -->
+            <div class="api-section">
+                <h3>📋 API 接口文档</h3>
+                
+                <div class="api-endpoint">
+                    <span class="api-method method-get">GET</span>
+                    <span class="api-url">/health</span>
+                    <p>健康检查接口</p>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="api-method method-get">GET</span>
+                    <span class="api-url">/status</span>
+                    <p>获取服务状态</p>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="api-method method-get">GET</span>
+                    <span class="api-url">/qr</span>
+                    <p>获取登录二维码</p>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="api-method method-get">GET</span>
+                    <span class="api-url">/users</span>
+                    <p>获取用户列表</p>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="api-method method-post">POST</span>
+                    <span class="api-url">/send-message</span>
+                    <p>发送消息</p>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="api-method method-post">POST</span>
+                    <span class="api-url">/send-batch-messages</span>
+                    <p>批量发送消息</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001';
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            checkStatus();
+            loadQR();
+            
+            // 每30秒自动刷新状态
+            setInterval(checkStatus, 30000);
+        });
+        
+        // 检查服务状态
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/status`);
+                const data = await response.json();
+                
+                document.getElementById('connectionStatus').textContent = '已连接';
+                document.getElementById('connectionStatus').className = 'status-value status-ready';
+                
+                document.getElementById('clientStatus').textContent = data.isReady ? '已就绪' : '未就绪';
+                document.getElementById('clientStatus').className = `status-value ${data.isReady ? 'status-ready' : 'status-not-ready'}`;
+                
+                document.getElementById('qrStatus').textContent = data.hasQRCode ? '可用' : '不可用';
+                document.getElementById('qrStatus').className = `status-value ${data.hasQRCode ? 'status-ready' : 'status-not-ready'}`;
+                
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                
+            } catch (error) {
+                document.getElementById('connectionStatus').textContent = '连接失败';
+                document.getElementById('connectionStatus').className = 'status-value status-not-ready';
+                console.error('状态检查失败:', error);
+            }
+        }
+        
+        // 加载二维码
+        async function loadQR() {
+            try {
+                const response = await fetch(`${API_BASE}/qr`);
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.qrCodeImage) {
+                    document.getElementById('qrContainer').innerHTML = `
+                        <div class="qr-code">
+                            <img src="${data.qrCodeImage}" alt="WhatsApp QR Code" style="max-width: 100%;">
+                            <p style="margin-top: 10px; color: #6c757d;">请使用 WhatsApp 扫描此二维码登录</p>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('qrContainer').innerHTML = `
+                        <div class="error">二维码暂不可用: ${data.message || '未知错误'}</div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('qrContainer').innerHTML = `
+                    <div class="error">加载二维码失败: ${error.message}</div>
+                `;
+            }
+        }
+        
+        // 刷新二维码
+        function refreshQR() {
+            loadQR();
+        }
+        
+        // 重新初始化
+        async function reinitialize() {
+            try {
+                const response = await fetch(`${API_BASE}/reinitialize`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showMessage('重新初始化成功，请等待...', 'success');
+                    setTimeout(() => {
+                        checkStatus();
+                        loadQR();
+                    }, 3000);
+                } else {
+                    showMessage('重新初始化失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('重新初始化失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 发送消息
+        async function sendMessage() {
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            if (!phoneNumber || !message) {
+                showMessage('请输入手机号和消息内容', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/send-message`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: phoneNumber,
+                        message: message
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showMessage('消息发送成功！', 'success');
+                    document.getElementById('message').value = '';
+                } else {
+                    showMessage('消息发送失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('消息发送失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 加载用户列表
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/users`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const usersContainer = document.getElementById('usersContainer');
+                    
+                    if (data.users && data.users.length > 0) {
+                        usersContainer.innerHTML = data.users.map(user => `
+                            <div class="user-card">
+                                <div class="user-name">${user.name || user.phoneNumber}</div>
+                                <div class="user-phone">${user.phoneNumber}</div>
+                                <div style="margin-top: 5px; font-size: 0.8em; color: #6c757d;">
+                                    状态: ${user.isOnline ? '在线' : '离线'} | 
+                                    未读: ${user.unreadCount || 0}
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        usersContainer.innerHTML = '<div class="loading">暂无用户数据</div>';
+                    }
+                } else {
+                    showMessage('加载用户列表失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('加载用户列表失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 显示消息
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            
+            // 插入到页面顶部
+            const content = document.querySelector('.content');
+            content.insertBefore(messageDiv, content.firstChild);
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
